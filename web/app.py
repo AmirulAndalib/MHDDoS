@@ -236,7 +236,9 @@ def start_attack():
     method = data.get("method", "").strip().upper()
     target = data.get("target", "").strip()
 
-    if method not in ALL_METHODS:
+    allowed_methods = {m: m for m in ALL_METHODS}
+    safe_method = allowed_methods.get(method)
+    if safe_method is None:
         return jsonify({"success": False, "error": "Invalid method."}), 400
 
     if not target:
@@ -258,36 +260,37 @@ def start_attack():
     duration = _safe_int(data.get("duration", 60), 60, 1, 86400)
 
     start_py = str(BASE_DIR / "start.py")
-    cmd = [PYTHON_EXE, start_py, method, target]
+    safe_cmd = [PYTHON_EXE, start_py, safe_method, target]
 
     if layer == "L7":
         socks_type = _safe_int(data.get("socks_type", 0), 0, 0, 6)
         if socks_type not in VALID_SOCKS_TYPES:
             socks_type = 0
         rpc = _safe_int(data.get("rpc", 10), 10, 1, 10000)
-        proxylist = Path(data.get("proxylist", "http.txt").strip() or "http.txt").name
-        if proxylist not in ALLOWED_LIST_FILES:
-            proxylist = "http.txt"
-        cmd.extend([str(socks_type), str(threads), proxylist, str(rpc), str(duration)])
+        proxylist_candidate = Path(data.get("proxylist", "http.txt").strip() or "http.txt").name
+        proxylist = proxylist_candidate if proxylist_candidate in ALLOWED_LIST_FILES else "http.txt"
+        safe_cmd.extend([str(socks_type), str(threads), proxylist, str(rpc), str(duration)])
     else:
-        cmd.extend([str(threads), str(duration)])
+        safe_cmd.extend([str(threads), str(duration)])
         if method in METHODS_AMP:
-            amp_file = Path(data.get("reflector", "").strip()).name
-            if amp_file in ALLOWED_LIST_FILES:
-                cmd.append(amp_file)
+            amp_candidate = Path(data.get("reflector", "").strip()).name
+            amp_file = amp_candidate if amp_candidate in ALLOWED_LIST_FILES else None
+            if amp_file is not None:
+                safe_cmd.append(amp_file)
         else:
             proxy_type = _safe_int(data.get("socks_type", 0), 0, 0, 6)
             if proxy_type not in VALID_SOCKS_TYPES:
                 proxy_type = 0
-            proxy_file = Path(data.get("proxylist", "").strip()).name
-            if proxy_file in ALLOWED_LIST_FILES:
-                cmd.extend([str(proxy_type), proxy_file])
+            proxy_candidate = Path(data.get("proxylist", "").strip()).name
+            proxy_file = proxy_candidate if proxy_candidate in ALLOWED_LIST_FILES else None
+            if proxy_file is not None:
+                safe_cmd.extend([str(proxy_type), proxy_file])
 
     task_id = str(uuid.uuid4())[:8]
 
     try:
         proc = subprocess.Popen(
-            cmd,
+            safe_cmd,
             cwd=str(BASE_DIR),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -300,7 +303,7 @@ def start_attack():
                 "id": task_id,
                 "pid": proc.pid,
                 "layer": layer,
-                "method": method,
+                "method": safe_method,
                 "target": target,
                 "threads": threads,
                 "duration": duration,
