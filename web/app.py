@@ -236,7 +236,9 @@ def start_attack():
     method = data.get("method", "").strip().upper()
     target = data.get("target", "").strip()
 
-    if method not in ALL_METHODS:
+    allowed_methods = {m: m for m in ALL_METHODS}
+    safe_method = allowed_methods.get(method)
+    if safe_method is None:
         return jsonify({"success": False, "error": "Invalid method."}), 400
 
     if not target:
@@ -258,7 +260,7 @@ def start_attack():
     duration = _safe_int(data.get("duration", 60), 60, 1, 86400)
 
     start_py = str(BASE_DIR / "start.py")
-    safe_cmd = [PYTHON_EXE, start_py, method, target]
+    safe_cmd = [PYTHON_EXE, start_py, safe_method, target]
 
     if layer == "L7":
         socks_type = _safe_int(data.get("socks_type", 0), 0, 0, 6)
@@ -301,7 +303,7 @@ def start_attack():
                 "id": task_id,
                 "pid": proc.pid,
                 "layer": layer,
-                "method": method,
+                "method": safe_method,
                 "target": target,
                 "threads": threads,
                 "duration": duration,
